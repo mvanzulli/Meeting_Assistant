@@ -1,4 +1,4 @@
-# 🎙️ Audio Summarizer
+# 🎙️ Meeting Helper
 
 This program provides functionality to record meetings and then generate summaries of the transcribed audio using OpenAI's GPT-3 language model.
 

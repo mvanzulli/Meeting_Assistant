@@ -4,6 +4,8 @@ import time
 import threading
 import signal
 import subprocess
+# yaml reader 
+import yaml
 
 import ffmpeg
 import openai
@@ -12,25 +14,33 @@ import torch
 import whisper
 from dotenv import load_dotenv
 
-# 
+# Set up environment variables
 OS = "linux"
-
-# Model ann prompt to open ai 
-WHISPER_MODEL = "base"
+DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+# Model ann prompt to open ai
+WHISPER_MODEL = "medium"
 
 # Set the environment variable OPEN_API_KEY to your OpenAI API key
-ENV_OPENAI_KEY = 'OPEN_API_KEY'
+ENV_OPENAI_KEY = "OPEN_API_KEY"
 
 # GPT 3.5 Turbo
 TEMPERATURE = 0.6
 GPT_MODEL = "gpt-3.5-turbo"
 GPT_ENCODER = "cl100k_base"
-COMMAND_PROMPT = "Create clear and concise unlabelled bullet points summarizing the key information. Take notes if any future work has been mentioned"
-COMMAND_ROLE = "You are a helpful assistant that summarizes text to small paragraphs"
+COMMAND_PROMPT = (
+    "Create clear and concise unlabelled bullet points summarizing the key information."
+    + "Take notes if any future work has been mentioned and split the output in 1) summarized text 2) To-do list"
+)
+COMMAND_ROLE = (
+    "You are a helpful assistant that summarizes text to small paragraphs bullets. "
+    + "You are also a note taker to create to-do lists."
+)
+
 SIZE_CHUNK = 2000
 
 # Init clock
 stop_timer = False
+
 
 def record_meeting(output_filename):
     """
@@ -38,7 +48,7 @@ def record_meeting(output_filename):
 
     This function records the audio and saves it to a file specified by output_filename.
     It also displays a timmer on the console showing the elapsed time since the recording started.
-    The clock updates every second until the recording is stopped by the user or an error occurs. 
+    The clock updates every second until the recording is stopped by the user or an error occurs.
     This function uses two threads to accomplish this.
 
     Args:
@@ -46,9 +56,8 @@ def record_meeting(output_filename):
 
     Returns:
         None
-    """   
+    """
     try:
-
         global stop_timer
 
         # Start the moving timmer in a different thread
@@ -61,19 +70,20 @@ def record_meeting(output_filename):
 
         if OS == "linux":
             stream = (
-                ffmpeg
-                .input('default', f='alsa', ac=2, video_size=None)
-                .output(output_filename, acodec="libmp3lame", format=output_format)  # Specify the output format as 'mp3'
+                ffmpeg.input("default", f="alsa", ac=2, video_size=None)
+                .output(
+                    output_filename, acodec="libmp3lame", format=output_format
+                )  # Specify the output format as 'mp3'
                 .overwrite_output()
             )
         elif OS == "MAC":
             stream = (
-                ffmpeg
-                .input(":0", f="avfoundation", video_size=None)  # Use 'default'
-                .output(output_filename, acodec="libmp3lame", format="mp3")  # Specify the output format as 'mp3'
+                ffmpeg.input(":0", f="avfoundation", video_size=None)  # Use 'default'
+                .output(
+                    output_filename, acodec="libmp3lame", format=output_format
+                )  # Specify the output format as 'mp3'
                 .overwrite_output()
             )
-
 
         # Start the process
         process = ffmpeg.run_async(stream, pipe_stdin=True, pipe_stderr=True)
@@ -83,7 +93,6 @@ def record_meeting(output_filename):
             time.sleep(1)
 
     except KeyboardInterrupt:
-
         stop_timer = True
         timer_thread.join()
 
@@ -93,7 +102,7 @@ def record_meeting(output_filename):
             os.killpg(os.getpgid(process.pid), signal.SIGTERM)
             process.wait()
 
-        print("Recording stopped.")
+        print(f"Recording has been saved in : {output_filename} ")
     except Exception as e:
         print(e)
 
@@ -111,7 +120,7 @@ def display_clock():
     while not stop_timer:
         elapsed_time = time.time() - start_time
         minutes, seconds = divmod(int(elapsed_time), 60)
-        sys.stdout.write(f'\rRecording: {minutes:02d}:{seconds:02d}')
+        sys.stdout.write(f"\rRecording: {minutes:02d}:{seconds:02d}")
         sys.stdout.flush()
         time.sleep(1)
 
@@ -129,20 +138,19 @@ def transcribe_audio(filename):
         str: The transcribed text as a string.
     """
     # load model
-    devices = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    model = whisper.load_model(WHISPER_MODEL, device=devices)
+    model = whisper.load_model(WHISPER_MODEL, device=DEVICE)
 
     # load audio and pad/trim it to fit 30 seconds
     audio = whisper.load_audio(filename)
 
-    print("Beginning Transcribing Process With Automatic Language Detection...")
+    print("Starting Transcribing Process With Automatic Language Detection...")
 
-    result = model.transcribe(audio, verbose=False, fp16=False, task="translate")
+    result = model.transcribe(audio, verbose=False, fp16=False, task="transcribe")
 
-    return result['text']
+    return result["text"], result['language']
 
 
-def summarize_transcript(transcript):
+def summarize_and_translate(transcript):
     """
     Generate a summary of a transcript using OpenAI's GPT-3 language model.
 
@@ -157,7 +165,7 @@ def summarize_transcript(transcript):
         A string containing the summary of the transcript.
     """
 
-    def generate_summary(prompt):
+    def generate_summary(prompt, language="en"):
         """
         Generate a summary prompt using OpenAI's GPT-3 language model.
 
@@ -166,28 +174,31 @@ def summarize_transcript(transcript):
 
         Args:
             prompt (str): The prompt to summarize.
-
+            language (str): The language of the prompt. Defaults to English.
         Returns:
             A string containing the summary of the prompt.
         """
+
+        # Get command role and prompts from the config file
+
         response = openai.ChatCompletion.create(
             model=GPT_MODEL,
             messages=[
-                {"role": "system", "content": f"{COMMAND_ROLE}"},
-                {"role": "user", "content": f"{COMMAND_PROMPT}: {prompt}"}
+                {"role": "system", "content": f"{COMMAND_ROLE[language]}"},
+                {"role": "user", "content": f"{COMMAND_PROMPT[language]}: {prompt}"},
             ],
             temperature=TEMPERATURE,
         )
-        return response.choices[0].message['content'].strip()
+        return response.choices[0].message["content"].strip()
 
     # Initialize a list to store the smaller chunks of text
     chunks = []
 
     # Add a prompt to the beginning of the text, to be used in the GPT-3 request
-    prompt = "Please summarize the following text:\n\n"
+    # prompt = "Please summarize and extract a to list from the following text:\n\n"
 
     # Add the prompt and transcript together to form the full text to summarize
-    text = prompt + transcript
+    text = transcript
 
     # Encode the text into tokens using the GPT-3 tokenizer
     tokenizer = tiktoken.get_encoding(GPT_ENCODER)
@@ -197,9 +208,9 @@ def summarize_transcript(transcript):
     while tokens:
         chunk_tokens = tokens[:SIZE_CHUNK]
         # Convert the chunk back into text
-        chunk_text = tokenizer.decode(chunk_tokens) 
+        chunk_text = tokenizer.decode(chunk_tokens)
         # Add the chunk to the list of chunks
-        chunks.append(chunk_text)  
+        chunks.append(chunk_text)
         # Move on to the next set of tokens
         tokens = tokens[SIZE_CHUNK:]
 
@@ -209,30 +220,40 @@ def summarize_transcript(transcript):
 
 
 if __name__ == "__main__":
-
-    if len(sys.argv) != 3:
-        print(f"Usage: python {sys.argv[0]} [record|summarize] <output_file_name>.mp3")
-        sys.exit(1)
+    # if len(sys.argv) != 3:
+    #     print(f"Usage: python {sys.argv[0]} [record|summarize] <output_file_name>.mp3")
+    #     sys.exit(1)
 
 
     load_dotenv()
-    api_key = os.getenv('OPEN_API_KEY')
+    api_key = os.getenv(ENV_OPENAI_KEY)
+
     if api_key is None:
-        print("Environment variable OPEN_API_KEY not found. Exiting...")
+        print(
+            "This application needs the a ENV VARIABLE: {} points to the OPEN_AI_API key. Exiting...".format(
+                ENV_OPENAI_KEY
+            )
+        )
         sys.exit(1)
 
     openai.api_key = api_key
 
-    action = sys.argv[1]
-    output_filename = sys.argv[2]
+    # action = sys.argv[1]
+    # output_filename = sys.argv[2]
+    action = "summarize"
+    output_filename = "cena_flor.mp3"
 
     if action == "record":
         record_meeting(output_filename)
+
     elif action == "summarize":
-        transcript = transcribe_audio(output_filename)
-        summary = summarize_transcript(transcript)
-        print(f"TRANSCRIPT:{transcript}\n")
-        print(f"SUMMARY_START:\n{summary}\nSUMMARY_END\n")
+        transcript, language = transcribe_audio(output_filename)
+        summary = summarize_and_translate(transcript, language=language)
+        print("\n Transcription:")
+        print(f"{transcript}")
+        print(f"\n{summary}\n")
     else:
-        print(f"Invalid action. Usage: python {sys.argv[0]} [record|summarize] output.mp3")
-        sys.exit(1)
+        print(
+            f"Invalid action. Usage: python {sys.argv[0]} [record|summarize] output.mp3"
+        )
+        # sys.exit(1)

@@ -10,10 +10,7 @@ To run this program, you will need:
 - `ffmpeg` installed on your system
 
 
-
-
-<details>
-<summary>## 🔧 Installation
+## 🔧 Installation
 
   1. Clone this repository
   2. Install the required Python modules using `pip install -r requirements.txt`
@@ -22,9 +19,6 @@ To run this program, you will need:
     3. `pip install -r requirements.txt`
   3. Create a ENVIROMENT VARIABLE and add your OpenAI API key as described below
 
-</details>
-
-2. Install the required Python modules using `pip install -r requirements.txt`
 
 ## 🛠️ Usage
 

@@ -1,3 +1,4 @@
+# Libraries
 import os
 import sys
 import time
@@ -5,7 +6,6 @@ import threading
 import signal
 import subprocess
 import yaml
-
 import ffmpeg
 import openai
 import tiktoken
@@ -27,8 +27,8 @@ TEMPERATURE = 0.6
 GPT_MODEL = "gpt-3.5-turbo"
 GPT_ENCODER = "cl100k_base"
 
-# Prompt and roles 
-# import language roles 
+# Prompt and roles
+# import language roles
 with open("language_roles.yaml", "r") as f:
     language_roles = yaml.safe_load(f)
 
@@ -143,7 +143,7 @@ def transcribe_audio(filename):
 
     result = model.transcribe(audio, verbose=False, fp16=False, task="transcribe")
 
-    return result["text"], result['language']
+    return result["text"], result["language"]
 
 
 def summarize_and_translate(transcript, language="en"):
@@ -156,6 +156,7 @@ def summarize_and_translate(transcript, language="en"):
 
     Args:
         transcript (str): The transcript to summarize.
+        language (str): The language of the transcript. Defaults to English.
 
     Returns:
         A string containing the summary of the transcript.
@@ -175,12 +176,11 @@ def summarize_and_translate(transcript, language="en"):
             A string containing the summary of the prompt.
         """
 
-        # Get the role and prompts fot the language 
+        # Get the role and prompts fot the language
         role = language_roles[language]["command_role"]
         command_prompt = language_roles[language]["command_prompt"]
 
         # Get command role and prompts from the config file
-
         response = openai.ChatCompletion.create(
             model=GPT_MODEL,
             messages=[
@@ -194,15 +194,9 @@ def summarize_and_translate(transcript, language="en"):
     # Initialize a list to store the smaller chunks of text
     chunks = []
 
-    # Add a prompt to the beginning of the text, to be used in the GPT-3 request
-    # prompt = "Please summarize and extract a to list from the following text:\n\n"
-
-    # Add the prompt and transcript together to form the full text to summarize
-    text = transcript
-
     # Encode the text into tokens using the GPT-3 tokenizer
     tokenizer = tiktoken.get_encoding(GPT_ENCODER)
-    tokens = tokenizer.encode(text)
+    tokens = tokenizer.encode(transcript)
 
     # Split the tokens into smaller chunks to better fit the GPT-3 API's request size limit
     while tokens:
@@ -220,40 +214,50 @@ def summarize_and_translate(transcript, language="en"):
 
 
 if __name__ == "__main__":
-    # if len(sys.argv) != 3:
-    #     print(f"Usage: python {sys.argv[0]} [record|summarize] <output_file_name>.mp3")
-    #     sys.exit(1)
-
-
+    # Get the OpenAI API key from the environment
     load_dotenv()
     api_key = os.getenv(ENV_OPENAI_KEY)
-
     if api_key is None:
         print(
-            "This application needs the a ENV VARIABLE: {} points to the OPEN_AI_API key. Exiting...".format(
-                ENV_OPENAI_KEY
-            )
+            f"Please set an enviroment variable: {ENV_OPENAI_KEY} points to the OPEN_AI_API key. By by..."
         )
         sys.exit(1)
-
     openai.api_key = api_key
 
-    # action = sys.argv[1]
-    # output_filename = sys.argv[2]
-    action = "summarize"
-    output_filename = "cena_flor.mp3"
+    # Get actions and output filename from the command line
+    action = sys.argv[1]
+    output_filename = sys.argv[2]
 
+    # Record action
     if action == "record":
+        assert len(sys.argv) == 3, "Usage: python3 record <output_file_name>.mp3"
         record_meeting(output_filename)
 
     elif action == "summarize":
-        transcript, language = transcribe_audio(output_filename)
-        summary = summarize_and_translate(transcript, language)
-        print("\n Transcription:")
-        print(f"{transcript}")
-        print(f"\n{summary}\n")
-    else:
-        print(
-            f"Invalid action. Usage: python {sys.argv[0]} [record|summarize] output.mp3"
-        )
-        # sys.exit(1)
+        assert (
+            len(sys.argv) == 3 or len(sys.argv) == 4
+        ), "Usage: python3 summarize <output_file_name>.mp3 <language (optional)>"
+
+        if len(sys.argv) == 3:
+            print(
+                "No language specified. Using default language detected in the record"
+            )
+
+            transcript, language = transcribe_audio(output_filename)
+            summary = summarize_and_translate(transcript, language)
+
+            print(f"{transcript}")
+            print(f"\n{summary}\n")
+            sys.exit(1)
+        else:
+            language = sys.argv[3]
+            # Check language is in the keys of the language_roles dictionary
+            assert (
+                language in language_roles.keys()
+            ), f"Language {language} not supported. Please use one of the following languages explicit: {language_roles.keys()}"
+            transcript, _ = transcribe_audio(output_filename)
+            summary = summarize_and_translate(transcript, language)
+
+            print(f"{transcript}")
+            print(f"\n{summary}\n")
+            sys.exit(1)

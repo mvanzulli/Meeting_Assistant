@@ -4,7 +4,6 @@ import time
 import threading
 import signal
 import subprocess
-# yaml reader 
 import yaml
 
 import ffmpeg
@@ -27,14 +26,11 @@ ENV_OPENAI_KEY = "OPEN_API_KEY"
 TEMPERATURE = 0.6
 GPT_MODEL = "gpt-3.5-turbo"
 GPT_ENCODER = "cl100k_base"
-COMMAND_PROMPT = (
-    "Create clear and concise unlabelled bullet points summarizing the key information."
-    + "Take notes if any future work has been mentioned and split the output in 1) summarized text 2) To-do list"
-)
-COMMAND_ROLE = (
-    "You are a helpful assistant that summarizes text to small paragraphs bullets. "
-    + "You are also a note taker to create to-do lists."
-)
+
+# Prompt and roles 
+# import language roles 
+with open("language_roles.yaml", "r") as f:
+    language_roles = yaml.safe_load(f)
 
 SIZE_CHUNK = 2000
 
@@ -150,7 +146,7 @@ def transcribe_audio(filename):
     return result["text"], result['language']
 
 
-def summarize_and_translate(transcript):
+def summarize_and_translate(transcript, language="en"):
     """
     Generate a summary of a transcript using OpenAI's GPT-3 language model.
 
@@ -165,7 +161,7 @@ def summarize_and_translate(transcript):
         A string containing the summary of the transcript.
     """
 
-    def generate_summary(prompt, language="en"):
+    def generate_summary(prompt, language):
         """
         Generate a summary prompt using OpenAI's GPT-3 language model.
 
@@ -179,13 +175,17 @@ def summarize_and_translate(transcript):
             A string containing the summary of the prompt.
         """
 
+        # Get the role and prompts fot the language 
+        role = language_roles[language]["command_role"]
+        command_prompt = language_roles[language]["command_prompt"]
+
         # Get command role and prompts from the config file
 
         response = openai.ChatCompletion.create(
             model=GPT_MODEL,
             messages=[
-                {"role": "system", "content": f"{COMMAND_ROLE[language]}"},
-                {"role": "user", "content": f"{COMMAND_PROMPT[language]}: {prompt}"},
+                {"role": "system", "content": f"{role}"},
+                {"role": "user", "content": f"{command_prompt}: {prompt}"},
             ],
             temperature=TEMPERATURE,
         )
@@ -214,7 +214,7 @@ def summarize_and_translate(transcript):
         # Move on to the next set of tokens
         tokens = tokens[SIZE_CHUNK:]
 
-    summary = "\n".join([generate_summary(chunk) for chunk in chunks])
+    summary = "\n".join([generate_summary(chunk, language) for chunk in chunks])
 
     return summary
 
@@ -248,7 +248,7 @@ if __name__ == "__main__":
 
     elif action == "summarize":
         transcript, language = transcribe_audio(output_filename)
-        summary = summarize_and_translate(transcript, language=language)
+        summary = summarize_and_translate(transcript, language)
         print("\n Transcription:")
         print(f"{transcript}")
         print(f"\n{summary}\n")

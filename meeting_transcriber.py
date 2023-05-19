@@ -261,3 +261,8 @@ if __name__ == "__main__":
             print(f"{transcript}")
             print(f"\n{summary}\n")
             sys.exit(1)
+    else:
+        print(
+            f"Action {action} not supported. Please use one of the following actions: record, summarize"
+        )
+        sys.exit(1)

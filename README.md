@@ -15,10 +15,10 @@ To run this program, you will need:
 
   1. Clone this repository
   2. Create an enviroment and install dependencies
-  ```
-    `python3 -m venv .venv`
-    `source .venv/bin/activate`
-    `pip install -r requirements.txt`
+  ```bash
+    python3 -m venv .venv
+    source .venv/bin/activate
+    pip install -r requirements.txt
   ```
 
 ## 🔑 Required Environment Variables

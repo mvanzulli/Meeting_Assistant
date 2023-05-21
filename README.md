@@ -7,7 +7,10 @@ This program provides functionality to record meetings and then generate summari
 To run this program, you will need:
 
 - `Python 3.7` or higher
-- `ffmpeg` installed on your system
+- `ffmpeg` installed on your system. If not:
+  ```bash
+  sudo apt install ffmpeg
+  ```
 
 
 ## 🔧 Installation
@@ -35,7 +38,7 @@ This program requires an OpenAI API key to function. To set up your environment 
 
 To record a meeting, run:
 
-```
+```bash
 python meeting_transcriber.py record <output_file_name>.mp3
 ```
 
@@ -45,8 +48,8 @@ This will record the audio and save it to a file with the specified name.
 
 To generate a summary of an audio file, run:
 
-```
-python meeting_transcriber.py summarize <audio_file_name>.mp3 
+```bash
+python3 meeting_transcriber.py summarize <audio_file_name>.mp3 
 ```
 
 This will generate a summary of the transcribed audio using OpenAI's GPT-3 language model in the same audio language.
@@ -55,15 +58,14 @@ This will generate a summary of the transcribed audio using OpenAI's GPT-3 langu
 
 To generate a summary of an audio file and translate it into <language_key>, run:
 
-```
-python meeting_transcriber.py summarize <audio_file_name>.mp3 <language_key>
+```bash
+python3 meeting_transcriber.py summarize <audio_file_name>.mp3 <language_key>
 ```
 You can see the language keys in the language_roles.yaml file.
 
 ## 📝 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 
 ## 💼 Variables to tune
 

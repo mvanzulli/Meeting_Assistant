@@ -219,10 +219,13 @@ if __name__ == "__main__":
     api_key = os.getenv(ENV_OPENAI_KEY)
     if api_key is None:
         print(
-            f"Please set an enviroment variable: {ENV_OPENAI_KEY} points to the OPEN_AI_API key. By by..."
+            f"Please set an enviroment variable: {ENV_OPENAI_KEY} points to the OpenIA API key. Exiting..."
         )
         sys.exit(1)
     openai.api_key = api_key
+
+    # Check input dimensions
+    assert len(sys.argv) >= 2, "Usage: python3 record|summarize <output_file_name>.mp3 <language (optional)>"
 
     # Get actions and output filename from the command line
     action = sys.argv[1]

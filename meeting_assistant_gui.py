@@ -1,8 +1,14 @@
 import sys
 import os
 import signal
-from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QPushButton, QFileDialog, QLabel, QTextEdit, QHBoxLayout
+import yaml
+from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QPushButton, QFileDialog, QLabel, QTextEdit, QHBoxLayout, QComboBox
 from PyQt5.QtCore import QProcess
+
+# Read language options
+with open("language_roles.yaml", "r") as f:
+    language_roles = yaml.safe_load(f)
+languages = list(language_roles.keys())
 
 MEETING_ASSISTANT_CLI = "meeting_assistant_cli.py"
 
@@ -43,6 +49,13 @@ class MeetingAssistant(QMainWindow):
         self.summarize_button.clicked.connect(self.summarize)
         layout.addWidget(self.summarize_button)
 
+        # Language selection
+        self.language_label = QLabel("Select language:")
+        layout.addWidget(self.language_label)
+        self.language_combo = QComboBox()
+        self.language_combo.addItems(languages)
+        layout.addWidget(self.language_combo)
+
         # Transcript
         self.transcript_label = QLabel("Audio transcription:")
         layout.addWidget(self.transcript_label)
@@ -77,8 +90,11 @@ class MeetingAssistant(QMainWindow):
             self, "Select Audio File", filter="MP3 Files (*.mp3)")
         if not audio_filename:
             return
+
+        language = self.language_combo.currentText()
+
         self.process.start(
-            "python", [MEETING_ASSISTANT_CLI, "summarize", audio_filename])
+            "python", [MEETING_ASSISTANT_CLI, "summarize", audio_filename, language])
 
     def handle_stderr(self):
         data = self.process.readAllStandardError().data().decode()
@@ -91,12 +107,12 @@ class MeetingAssistant(QMainWindow):
         transcript = self.transcript_edit.toPlainText()
         summary = ""
         summary_flag = False
+
         for line in lines:
             print(line)
 
             if line.startswith("TRANSCRIPTION OUTPUT START"):
                 summary = ""
-                summary_flag = False
             elif line.startswith("TRANSCRIPTION OUTPUT END"):
                 self.transcript_edit.setPlainText(transcript.strip())
             elif line.startswith("SUMMARY AND FUTURE WORK OUTPUTS START"):

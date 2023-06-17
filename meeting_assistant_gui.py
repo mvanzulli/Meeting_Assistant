@@ -1,15 +1,18 @@
-import sys, os, signal
+import sys
+import os
+import signal
 from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QPushButton, QFileDialog, QLabel, QTextEdit, QHBoxLayout
 from PyQt5.QtCore import QProcess
 
-MEETING_ASSISTANT_BACKEND = "meeting_assistant.py"
+MEETING_ASSISTANT_BACKEND = "meeting_assistant_cli.py"
+
 
 class MeetingAssistant(QMainWindow):
     def __init__(self):
         super().__init__()
 
         self.setWindowTitle("Meeting Assistant")
-        self.setFixedSize(700, 450) 
+        self.setFixedSize(700, 450)
 
         central_widget = QWidget(self)
         self.setCentralWidget(central_widget)
@@ -27,12 +30,12 @@ class MeetingAssistant(QMainWindow):
         self.button_layout.addWidget(self.stop_button)
 
         self.summarize_button = QPushButton("Summarize")
-        self.summarize_button.clicked.connect(self.summarize_recording)
+        self.summarize_button.clicked.connect(self.summarize)
         layout.addWidget(self.summarize_button)
 
         self.transcript_label = QLabel("Transcript:")
         layout.addWidget(self.transcript_label)
-      
+
         self.translate_label = QLabel("Translate:")
         layout.addWidget(self.translate_label)
 
@@ -51,24 +54,26 @@ class MeetingAssistant(QMainWindow):
         self.process.finished.connect(self.process_finished)
 
     def start_recording(self):
-            output_filename, _ = QFileDialog.getSaveFileName(self, "Save Meeting Recording", filter="MP3 Files (*.mp3)")
-            if not output_filename:
-                return
-            if not output_filename.endswith(".mp3"):
-                output_filename += ".mp3"
-            self.output_filename = output_filename
-            self.process.start("python", [MEETING_ASSISTANT_BACKEND, "record", self.output_filename])
+        output_filename, _ = QFileDialog.getSaveFileName(
+            self, "Save Meeting Recording", filter="MP3 Files (*.mp3)")
+        if not output_filename:
+            return
+        if not output_filename.endswith(".mp3"):
+            output_filename += ".mp3"
+        self.output_filename = output_filename
+        self.process.start(
+            "python", [MEETING_ASSISTANT_BACKEND, "record", self.output_filename])
 
     def stop_recording(self):
         os.kill(self.process.processId(), signal.SIGINT)
-        self.process.waitForFinished(-1)  # Wait indefinitely for the process to finish
+        # Wait indefinitely for the process to finish
+        self.process.waitForFinished(-1)
 
-    def summarize_recording(self):
-        audio_filename, _ = QFileDialog.getOpenFileName(self, "Select Audio File", filter="MP3 Files (*.mp3)")
+    def summarize(self):
+        audio_filename, _ = QFileDialog.getOpenFileName(
+            self, "Select Audio File", filter="MP3 Files (*.mp3)")
         if not audio_filename:
-            return
-        self.process.start("python", [MEETING_ASSISTANT_BACKEND, "summarize", audio_filename])
-
+            return self.process.start("python", [MEETING_ASSISTANT_BACKEND, "summarize", audio_filename])
 
     def handle_stdout(self):
         data = self.process.readAllStandardOutput().data().decode()
@@ -83,7 +88,8 @@ class MeetingAssistant(QMainWindow):
             if line.startswith("TRANSCRIPT:"):
                 transcript = line[len("TRANSCRIPT:"):].strip()
                 current_transcript = self.transcript_edit.toPlainText()
-                self.transcript_edit.setPlainText(current_transcript + transcript)
+                self.transcript_edit.setPlainText(
+                    current_transcript + transcript)
             elif line.startswith("SUMMARY_START"):
                 summary_flag = True
             elif line.startswith("SUMMARY_END"):

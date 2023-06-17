@@ -16,23 +16,20 @@ from dotenv import load_dotenv
 # Set up environment variables
 OS = "linux"
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-# Model ann prompt to open ai
+
+# Whisper
 WHISPER_MODEL = "medium"
 
 # Set the environment variable OPEN_API_KEY to your OpenAI API key
 ENV_OPENAI_KEY = "OPEN_API_KEY"
 
 # GPT 3.5 Turbo
-TEMPERATURE = 0.6
+TEMPERATURE = 0.7
 GPT_MODEL = "gpt-3.5-turbo"
 GPT_ENCODER = "cl100k_base"
-
-# Prompt and roles
-# import language roles
+SIZE_CHUNK = 2000
 with open("language_roles.yaml", "r") as f:
     language_roles = yaml.safe_load(f)
-
-SIZE_CHUNK = 2000
 
 # Init clock
 stop_timer = False
@@ -216,13 +213,36 @@ def summarize_and_translate(transcript, language="en"):
     return summary
 
 
+def print_output(transcript, summary, language):
+    """
+    Print the transcript and summary to the console.
+
+    This function takes in a transcript (a string) and a summary (a string) and prints them to the console.
+
+    Args:
+        transcript (str): The transcript to print.
+        summary (str): The summary to print.
+        language (str): The language of the transcript. Defaults to English.
+    Returns:
+        None
+    """
+    print(
+        f"TRANSCRIPTION OUTPUT START\n{transcript}\nTRANSCRIPTION OUTPUT END\n")
+    print(f"SUMMARY LANGUAGE:\n{language}\n")
+    print(
+        f"SUMMARY AND FUTURE WORK OUTPUTS START\n{summary}\nSUMMARY AND FUTURE WORK OUTPUTS END\n")
+
+    return None
+
+
 if __name__ == "__main__":
     # Get the OpenAI API key from the environment
     load_dotenv()
     api_key = os.getenv(ENV_OPENAI_KEY)
+
     if api_key is None:
         print(
-            f"Please set an enviroment variable: {ENV_OPENAI_KEY} points to the OpenIA API key. Exiting..."
+            f"Please set an environment variable: {ENV_OPENAI_KEY} points to the OpenIA API key. Exiting..."
         )
         sys.exit(1)
     openai.api_key = api_key
@@ -253,8 +273,7 @@ if __name__ == "__main__":
             transcript, language = transcribe_audio(output_filename)
             summary = summarize_and_translate(transcript, language)
 
-            print(f"{transcript}")
-            print(f"\n{summary}\n")
+            print_output(transcript, summary, language)
             sys.exit(1)
         else:
             language = sys.argv[3]
@@ -265,8 +284,7 @@ if __name__ == "__main__":
             transcript, _ = transcribe_audio(output_filename)
             summary = summarize_and_translate(transcript, language)
 
-            print(f"{transcript}")
-            print(f"\n{summary}\n")
+            print_output(transcript, summary, language)
             sys.exit(1)
     else:
         print(

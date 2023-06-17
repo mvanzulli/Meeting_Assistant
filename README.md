@@ -2,6 +2,8 @@
 
 This program provides functionality to record meetings and then generate summaries of the transcribed audio using OpenAI's GPT-3 language model.
 
+<img src="https://user-images.githubusercontent.com/50339940/246629007-6d69261d-89a5-4544-964e-8ea41829cef0.png" alt="picture description" width="200" height="500">
+
 ## 🚀 Prerequisites
 
 To run this program, you will need:
@@ -11,7 +13,6 @@ To run this program, you will need:
   ```bash
   sudo apt install ffmpeg
   ```
-
 
 ## 🔧 Installation
 

@@ -98,7 +98,7 @@ class MeetingAssistant(QMainWindow):
 
     def handle_stderr(self):
         data = self.process.readAllStandardError().data().decode()
-        print(f"StdErr: {data.strip()}")  # Print stderr to console
+        print(f"stdout: {data.strip()}")  # Print stderr to console
 
     def handle_stdout(self):
         data = self.process.readAllStandardOutput().data().decode()

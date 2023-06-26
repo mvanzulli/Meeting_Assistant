@@ -35,12 +35,20 @@ This program requires an OpenAI API key to function. To set up your environment 
 
 ## 🛠️ Usage
 
+### GUI 
+
+Launch the GUI: 
+  
+```bash
+python3 gui/gui.py
+```
+
 ### Record
 
 To record a meeting, run:
 
 ```bash
-python meeting_transcriber.py record <output_file_name>.mp3
+python model/model.py record <output_file_name>.mp3
 ```
 
 This will record the audio and save it to a file with the specified name.
@@ -50,7 +58,7 @@ This will record the audio and save it to a file with the specified name.
 To generate a summary of an audio file, run:
 
 ```bash
-python3 meeting_transcriber.py summarize <audio_file_name>.mp3 
+python3 model/model.py summarize <audio_file_name>.mp3 
 ```
 
 This will generate a summary of the transcribed audio using OpenAI's GPT-3 language model in the same audio language.
@@ -60,7 +68,7 @@ This will generate a summary of the transcribed audio using OpenAI's GPT-3 langu
 To generate a summary of an audio file and translate it into <language_key>, run:
 
 ```bash
-python3 meeting_transcriber.py summarize <audio_file_name>.mp3 <language_key>
+python3 model/model.py summarize <audio_file_name>.mp3 <language_key>
 ```
 You can see the language keys in the language_roles.yaml file.
 

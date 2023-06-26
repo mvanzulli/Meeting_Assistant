@@ -28,7 +28,7 @@ TEMPERATURE = 0.7
 GPT_MODEL = "gpt-3.5-turbo"
 GPT_ENCODER = "cl100k_base"
 SIZE_CHUNK = 2000
-with open("language_roles.yaml", "r") as f:
+with open("./model/language_roles.yaml", "r") as f:
     language_roles = yaml.safe_load(f)
 
 # Init clock
@@ -96,7 +96,7 @@ def record_meeting(output_filename):
             os.killpg(os.getpgid(process.pid), signal.SIGTERM)
             process.wait()
 
-        print(f"Recording has been saved in : {output_filename} ")
+        print(f"\n Recording has been saved in: {output_filename} ")
     except Exception as e:
         print(e)
 

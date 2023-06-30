@@ -1,0 +1,18 @@
+{
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.formatOnPaste": true,
+        "files.trimTrailingWhitespace": true,
+        "editor.detectIndentation": false,
+        "editor.insertSpaces": true,
+        "editor.tabSize": 4,
+        "files.insertFinalNewline": true,
+        "files.trimFinalNewlines": true,
+        "editor.rulers": [
+            92
+        ],
+        "files.eol": "\n",
+        "editor.formatOnSave": true
+    },
+    "python.formatting.provider": "none"
+}

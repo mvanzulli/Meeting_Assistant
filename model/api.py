@@ -1,10 +1,7 @@
 import uvicorn
-import sys
-import os
 from fastapi import FastAPI
 from fastapi import UploadFile
 
-sys.path.append(os.path.abspath('./model/'))
 from model import summarize_and_translate, transcribe_audio
 
 app = FastAPI()

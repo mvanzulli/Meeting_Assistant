@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  model:
+    image: model
+    build: './model'
+    container_name: model
+    networks:
+      - net
+    command:
+      ['uvicorn', 'api:app', '--host', '127.0.0.1', '--port', '8000']
+    ports:
+      - 5000:8000
+
+
+networks:
+  net:
+    driver: bridge

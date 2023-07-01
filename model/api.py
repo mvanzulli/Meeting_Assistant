@@ -1,4 +1,5 @@
 import uvicorn
+import requests
 from fastapi import FastAPI
 from fastapi import UploadFile
 
@@ -59,11 +60,20 @@ async def summarize_audio(file: UploadFile, language: str = "en") -> dict:
     summary = summarize_text(transcription["text"], language)
 
     # Return the summary
-    return summary
+    return {
+        "summary": summary["text"],
+        "transcription": transcription["text"],
+        "audio_language": transcription["language"],
+    }
 
+
+IP = "127.0.0.1"
+PORT = 8000
+BASE_URL = f"http://{IP}:{PORT}"
 
 if __name__ == "__main__":
-    uvicorn.run(app, port=8000, host="127.0.0.1")
+    # Serve the app
+    uvicorn.run(app, port=PORT, host=IP)
 
     # From  cli
     # curl -X GET "http://127.0.0.1:8000/translate_summarize_text/?text=YourTextHere&language=en"

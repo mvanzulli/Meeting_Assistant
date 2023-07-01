@@ -1,17 +1,16 @@
 import uvicorn
-import sys
-import os
 from fastapi import FastAPI
 from fastapi import UploadFile
 
-sys.path.append(os.path.abspath('./model/'))
 from model import summarize_and_translate, transcribe_audio
 
 app = FastAPI()
 
+
 @app.get("/")
 def read_root():
     return {"Message": "Record, transcribe, translate and summarize your meetings"}
+
 
 @app.post("/transcribe/")
 async def transcribe(file: UploadFile) -> dict:
@@ -30,16 +29,18 @@ async def transcribe(file: UploadFile) -> dict:
 
     # Transcribe the audio
     transcript, language = transcribe_audio(file.filename)
-    
-    # Return the results as a tuple
-    return {"text":transcript, "language":language}
 
-@app.get("/translate&summarize_text/")
-def summarize_text(text:str, language:str ="en") -> dict:
+    # Return the results as a tuple
+    return {"text": transcript, "language": language}
+
+
+@app.get("/translate_summarize_text/")
+def summarize_text(text: str, language: str = "en") -> dict:
     text = summarize_and_translate(text, language)
     return {"text": text}
 
-@app.post("/translate&summarize_audio/")
+
+@app.post("/translate_summarize_audio/")
 async def summarize_audio(file: UploadFile, language: str = "en") -> dict:
     """
     Transcribes an audio file and generates a summary of the resulting text.
@@ -60,5 +61,9 @@ async def summarize_audio(file: UploadFile, language: str = "en") -> dict:
     # Return the summary
     return summary
 
+
 if __name__ == "__main__":
     uvicorn.run(app, port=8000, host="127.0.0.1")
+
+    # From  cli
+    # curl -X GET "http://127.0.0.1:8000/translate_summarize_text/?text=YourTextHere&language=en"

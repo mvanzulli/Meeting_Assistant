@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Libraries
 import os
 import sys
@@ -28,8 +30,13 @@ TEMPERATURE = 0.7
 GPT_MODEL = "gpt-3.5-turbo"
 GPT_ENCODER = "cl100k_base"
 SIZE_CHUNK = 2000
-with open("./model/language_roles.yaml", "r") as f:
-    language_roles = yaml.safe_load(f)
+try:
+    with open("./model/language_roles.yaml", "r") as f:
+        language_roles = yaml.safe_load(f)
+except:
+    with open("language_roles.yaml", "r") as f:
+        language_roles = yaml.safe_load(f)
+
 
 # Init clock
 stop_timer = False
@@ -71,8 +78,7 @@ def record_meeting(output_filename):
             )
         elif OS == "MAC":
             stream = (
-                ffmpeg.input(":0", f="avfoundation",
-                             video_size=None)  # Use 'default'
+                ffmpeg.input(":0", f="avfoundation", video_size=None)  # Use 'default'
                 .output(
                     output_filename, acodec="libmp3lame", format=output_format
                 )  # Specify the output format as 'mp3'
@@ -139,8 +145,7 @@ def transcribe_audio(filename):
 
     print("Starting Transcribing Process With Automatic Language Detection...")
 
-    result = model.transcribe(audio, verbose=False,
-                              fp16=False, task="transcribe")
+    result = model.transcribe(audio, verbose=False, fp16=False, task="transcribe")
 
     return result["text"], result["language"]
 
@@ -207,8 +212,7 @@ def summarize_and_translate(transcript, language="en"):
         # Move on to the next set of tokens
         tokens = tokens[SIZE_CHUNK:]
 
-    summary = "\n".join([generate_summary(chunk, language)
-                        for chunk in chunks])
+    summary = "\n".join([generate_summary(chunk, language) for chunk in chunks])
 
     return summary
 
@@ -226,11 +230,11 @@ def print_output(transcript, summary, language):
     Returns:
         None
     """
-    print(
-        f"TRANSCRIPTION OUTPUT START\n{transcript}\nTRANSCRIPTION OUTPUT END\n")
+    print(f"TRANSCRIPTION OUTPUT START\n{transcript}\nTRANSCRIPTION OUTPUT END\n")
     print(f"SUMMARY LANGUAGE:\n{language}\n")
     print(
-        f"SUMMARY AND FUTURE WORK OUTPUTS START\n{summary}\nSUMMARY AND FUTURE WORK OUTPUTS END\n")
+        f"SUMMARY AND FUTURE WORK OUTPUTS START\n{summary}\nSUMMARY AND FUTURE WORK OUTPUTS END\n"
+    )
 
     return None
 
@@ -248,8 +252,9 @@ if __name__ == "__main__":
     openai.api_key = api_key
 
     # Check input dimensions
-    assert len(
-        sys.argv) >= 2, "Usage: python3 record|summarize <output_file_name>.mp3 <language (optional)>"
+    assert (
+        len(sys.argv) >= 2
+    ), "Usage: python3 record|summarize <output_file_name>.mp3 <language (optional)>"
 
     # Get actions and output filename from the command line
     action = sys.argv[1]

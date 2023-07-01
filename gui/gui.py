@@ -1,8 +1,21 @@
+#!/usr/bin/env python
+
 import sys
 import os
 import signal
 import yaml
-from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QPushButton, QFileDialog, QLabel, QTextEdit, QHBoxLayout, QComboBox
+from PyQt5.QtWidgets import (
+    QApplication,
+    QMainWindow,
+    QVBoxLayout,
+    QWidget,
+    QPushButton,
+    QFileDialog,
+    QLabel,
+    QTextEdit,
+    QHBoxLayout,
+    QComboBox,
+)
 from PyQt5.QtCore import QProcess
 
 # Read language options
@@ -70,14 +83,16 @@ class MeetingAssistant(QMainWindow):
 
     def start_recording(self):
         output_filename, _ = QFileDialog.getSaveFileName(
-            self, "Save Meeting Recording", filter="MP3 Files (*.mp3)")
+            self, "Save Meeting Recording", filter="MP3 Files (*.mp3)"
+        )
         if not output_filename:
             return
         if not output_filename.endswith(".mp3"):
             output_filename += ".mp3"
         self.output_filename = output_filename
         self.process.start(
-            "python", [MEETING_ASSISTANT_CLI, "record", self.output_filename])
+            "python", [MEETING_ASSISTANT_CLI, "record", self.output_filename]
+        )
 
     def stop_recording(self):
         os.kill(self.process.processId(), signal.SIGINT)
@@ -87,14 +102,16 @@ class MeetingAssistant(QMainWindow):
 
     def summarize(self):
         audio_filename, _ = QFileDialog.getOpenFileName(
-            self, "Select Audio File", filter="MP3 Files (*.mp3)")
+            self, "Select Audio File", filter="MP3 Files (*.mp3)"
+        )
         if not audio_filename:
             return
 
         language = self.language_combo.currentText()
 
         self.process.start(
-            "python", [MEETING_ASSISTANT_CLI, "summarize", audio_filename, language])
+            "python", [MEETING_ASSISTANT_CLI, "summarize", audio_filename, language]
+        )
 
     def handle_stderr(self):
         data = self.process.readAllStandardError().data().decode()

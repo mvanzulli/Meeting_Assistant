@@ -30,17 +30,11 @@ TEMPERATURE = 0.7
 GPT_MODEL = "gpt-3.5-turbo"
 GPT_ENCODER = "cl100k_base"
 SIZE_CHUNK = 2000
-try:
-    with open("./model/language_roles.yaml", "r") as f:
-        language_roles = yaml.safe_load(f)
-except:
-    with open("language_roles.yaml", "r") as f:
-        language_roles = yaml.safe_load(f)
-
+with open("language_roles.yaml", "r") as f:
+    language_roles = yaml.safe_load(f)
 
 # Init clock
 stop_timer = False
-
 
 def record_meeting(output_filename):
     """

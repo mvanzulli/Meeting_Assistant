@@ -162,3 +162,4 @@ cython_debug/
 #ignore all .mp3 files outside the auidos folder
 *.mp3
 !audios/*.mp3
+*.wav

@@ -5,13 +5,9 @@ import requests
 from typing import Tuple
 from st_custom_components import st_audiorec
 
-with open("./model/language_roles.yaml", "r") as f:
-    language_roles = yaml.safe_load(f)
-languages = list(language_roles.keys())
+languages = ["es","en","fr","pt", "de"]
 
-Future_works_split = ["Future work:", "Trabajos futuros:"]
-
-BASE_URL = "http://127.0.0.1:8000"  # Update with your API's base URL
+BASE_URL = f"http://127.0.0.1:8000"  # Update with your API's base URL
 
 def process_summary(summary : str) -> str:
     """
@@ -20,7 +16,6 @@ def process_summary(summary : str) -> str:
     Args:
         summary (str): The summary to
     """
-    # summary = summary.replace("\n", " ")
     summary = summary[9:-1]
 
     return summary
@@ -78,14 +73,12 @@ def main():
             if st.button("Generate Summary"):
                 with st.spinner("Generating Summary..."):
                     summary, transcription,_ = summarize_audio(audio_file, language)
-                st.success("Summary generated!")
 
                 with st.expander("Summary and future work"):
                     st.write(summary)
 
                 with st.expander("Transcription"):
                     st.write(transcription)
-
 
 
 if __name__ == "__main__":

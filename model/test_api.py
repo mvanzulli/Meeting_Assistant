@@ -5,7 +5,7 @@ import subprocess
 from api import BASE_URL
 
 # Run a python command from the root directory of the project
-process = subprocess.Popen(['python', 'model/api.py'])
+process = subprocess.Popen(['python', 'api.py'])
 
 def translate_summarize_audio(
     file_to_summarize, language, method_to_test="translate_summarize_audio"

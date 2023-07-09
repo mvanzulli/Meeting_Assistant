@@ -12,6 +12,15 @@ services:
     ports:
       - 5000:8000
 
+  web_app:
+    image: web_app
+    build: './web_app'
+    container_name: web_app
+    networks:
+      - net
+    command: 'streamlit run web_app.py --server.port 8080'
+    ports:
+      - 8787:8080
 
 networks:
   net:

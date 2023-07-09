@@ -19,11 +19,11 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import QProcess
 
 # Read language options
-with open("./model/language_roles.yaml", "r") as f:
+with open("./../model/language_roles.yaml", "r") as f:
     language_roles = yaml.safe_load(f)
 languages = list(language_roles.keys())
 
-MEETING_ASSISTANT_CLI = "./model/model.py"
+MEETING_ASSISTANT_CLI = "./../model/model.py"
 
 
 class MeetingAssistant(QMainWindow):

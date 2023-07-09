@@ -8,7 +8,6 @@ from model import summarize_and_translate, transcribe_audio
 
 app = FastAPI()
 
-
 @app.get("/")
 def read_root():
     return {"Message": "Record, transcribe, translate and summarize your meetings"}
@@ -73,8 +72,4 @@ PORT = 8000
 BASE_URL = f"http://{IP}:{PORT}"
 
 if __name__ == "__main__":
-    # Serve the app
     uvicorn.run(app, port=PORT, host=IP)
-
-    # From  cli
-    # curl -X GET "http://127.0.0.1:8000/translate_summarize_text/?text=YourTextHere&language=en"

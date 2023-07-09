@@ -2,7 +2,7 @@
 
 This program provides functionality to record meetings and then generate summaries of the transcribed audio using OpenAI's GPT-3 language model.
 
-<img src="https://user-images.githubusercontent.com/50339940/246629007-6d69261d-89a5-4544-964e-8ea41829cef0.png" alt="picture description" width="270" height="300">
+<img src="https://github.com/mvanzulli/Meeting_Assistant/assets/50339940/a42a1587-8084-4a57-a10a-470365c60a87" alt="ui_picture" width="270" height="300">
 
 ## 🚀 Prerequisites
 
